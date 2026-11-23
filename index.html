@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#16a34a" />
+  <title>Cak. Son - Belanja Segar</title>
+  <link rel="manifest" href="./manifest.json" />
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body { margin: 0; background: #f8fafc; color: #0f172a; padding-bottom: 80px; }
+    header { background: #16a34a; color: #fff; padding: 14px 16px; position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; }
+    main { max-width: 680px; margin: 0 auto; padding: 14px; }
+    section { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+    .cats { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; }
+    .cat-btn { border: 1px solid #cbd5e1; background: #fff; padding: 6px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+    .cat-btn.active { background: #16a34a; color: #fff; border-color: #16a34a; }
+    .product-item, .cart-row, .order-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+    .btn { background: #16a34a; color: #fff; border: none; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+    .btn-sm { padding: 5px 9px; font-size: 13px; }
+    .btn-outline { background: #fff; color: #0f172a; border: 1px solid #cbd5e1; }
+    .btn-danger { background: #dc2626; }
+    input, select, textarea { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 4px; margin-bottom: 10px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <strong>Cak. Son</strong><br />
+      <small>Sayur • Ikan • Buah • Daging • Bumbu</small>
+    </div>
+    <button id="toggleAdminBtn" class="btn btn-sm btn-outline" type="button">Admin</button>
+  </header>
+
+  <main>
+    <section id="catalogSection">
+      <div id="categoryBar" class="cats"></div>
+      <div id="productList"></div>
+    </section>
+
+    <section id="cartSection">
+      <h3>Keranjang Belanja</h3>
+      <div id="cartList"></div>
+      <div id="cartSummary"></div>
+
+      <form id="checkoutForm">
+        <label>Nama Penerima
+          <input type="text" id="custName" required placeholder="Contoh: Budi" />
+        </label>
+        <label>No. WhatsApp
+          <input type="tel" id="custWa" required placeholder="08xxxxxxxxxx" />
+        </label>
+        <label>Alamat Pengiriman
+          <textarea id="custAddress" rows="2" required placeholder="Jl. / Blok / Patokan"></textarea>
+        </label>
+        <label>Jadwal Kirim (WIB)
+          <select id="deliverySlot"></select>
+        </label>
+        <label>Catatan Tambahan (Opsional)
+          <input type="text" id="custNote" placeholder="Contoh: ikan dipotong 4" />
+        </label>
+        <button class="btn" type="submit" style="width:100%;">Buat Invoice & Kirim ke WhatsApp</button>
+      </form>
+    </section>
+
+    <section id="invoiceSection" class="hidden">
+      <h3>Invoice Pesanan</h3>
+      <div id="invoiceBox"></div>
+    </section>
+
+    <section id="trackSection">
+      <h3>Cek Status Pesanan</h3>
+      <input type="text" id="trackInvoiceInput" placeholder="Masukkan No. Invoice (misal: INV-123456)" />
+      <button id="trackBtn" class="btn btn-sm btn-outline" type="button">Cek Status</button>
+      <div id="trackResult"></div>
+    </section>
+
+    <section id="adminSection" class="hidden">
+      <h3>Area Admin</h3>
+      <div id="adminLoginBox">
+        <form id="adminLoginForm">
+          <label>Email Admin
+            <input type="email" id="adminEmail" required />
+          </label>
+          <label>Password Admin
+            <input type="password" id="adminPassword" required />
+          </label>
+          <button class="btn" type="submit">Masuk Admin</button>
+        </form>
+      </div>
+
+      <div id="adminDashboardBox" class="hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <small id="adminStatusText">Login Admin Aktif</small>
+          <button id="adminLogoutBtn" class="btn btn-sm btn-outline" type="button">Keluar</button>
+        </div>
+
+        <h4>Tambah / Edit Produk</h4>
+        <form id="productForm">
+          <input type="hidden" id="prodId" />
+          <label>Nama Produk
+            <input type="text" id="prodName" required placeholder="Bayam Segar" />
+          </label>
+          <label>Kategori
+            <select id="prodCategory">
+              <option value="Sayur">Sayur</option>
+              <option value="Ikan">Ikan</option>
+              <option value="Buah">Buah</option>
+              <option value="Daging">Daging</option>
+              <option value="Bumbu">Bumbu</option>
+            </select>
+          </label>
+          <label>Harga (Rp)
+            <input type="number" id="prodPrice" min="0" required placeholder="4000" />
+          </label>
+          <label>Satuan
+            <input type="text" id="prodUnit" value="ikat" required />
+          </label>
+          <label style="display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="prodAvailable" checked style="width:auto; margin:0;" />
+            Tersedia / Stok Ada
+          </label>
+          <br />
+          <button class="btn btn-sm" type="submit">Simpan Produk</button>
+          <button id="resetProductFormBtn" class="btn btn-sm btn-outline" type="button">Batal</button>
+        </form>
+
+        <hr />
+        <h4>Pengaturan Ongkir & Slot WIB</h4>
+        <form id="settingsForm">
+          <label>Ongkos Kirim (Rp)
+            <input type="number" id="settingShipping" min="0" required />
+          </label>
+          <label>Slot Pengiriman WIB (pisahkan dengan koma)
+            <input type="text" id="settingSlots" placeholder="07.00 - 09.00 WIB, 15.00 - 17.00 WIB" required />
+          </label>
+          <button class="btn btn-sm" type="submit">Simpan Pengaturan</button>
+        </form>
+
+        <hr />
+        <h4>Daftar Pesanan Masuk</h4>
+        <div id="adminOrdersList"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+    <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAUnSZe1YtgVfKT59JffEGjWSlRVNlPCQI",
+      authDomain: "cak-son.firebaseapp.com",
+      projectId: "cak-son",
+      storageBucket: "cak-son.firebasestorage.app",
+      messagingSenderId: "717548184101",
+      appId: "1:717548184101:web:b664f0066ac99fe67bd5cc"
+    };
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script>
+  <script src="./app.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch((err) => {
+          console.warn("SW gagal didaftarkan:", err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
