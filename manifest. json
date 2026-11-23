@@ -1,0 +1,10 @@
+{
+  "name": "Cak. Son - Belanja Segar",
+  "short_name": "Cak. Son",
+  "description": "Belanja kebutuhan segar harian Cak. Son",
+  "start_url": "/Cak-Son/",
+  "scope": "/Cak-Son/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#16a34a"
+}
